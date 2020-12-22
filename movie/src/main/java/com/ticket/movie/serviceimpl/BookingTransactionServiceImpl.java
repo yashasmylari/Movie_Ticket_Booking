@@ -48,16 +48,21 @@ public class BookingTransactionServiceImpl implements BookingTransactionService 
         int totalTickets;
         bookingTransactions = getTicketDetails(bookingReferenceId);
         if (bookingTransactions == null){
-            result = "Please Enter the valid booking reference number";
+            result = "Please Enter the valid Booking reference number";
         } else {
             String movieId = bookingTransactions.getMovieId();
-            int canceledTickets = bookingTransactions.getTicketCount();
             movie = getMovieDetails(movieId);
-            totalTickets = canceledTickets + movie.getTotalTickets();
-            movie.setTotalTickets(totalTickets);
-            movieInfoRepository.save(movie);
-            bookingInfoRepository.delete(bookingTransactions);
-            result = "Your Ticket has been canceled successfully";
+            if (movie == null){
+                result = "Please Enter the valid Movie reference ID";
+            } else {
+                int canceledTickets = bookingTransactions.getTicketCount();
+                totalTickets = canceledTickets + movie.getTotalTickets();
+                movie.setTotalTickets(totalTickets);
+                movieInfoRepository.save(movie);
+                bookingInfoRepository.delete(bookingTransactions);
+                result = "Your Ticket has been canceled successfully";
+            }
+
         }
 
         return result;
@@ -78,8 +83,13 @@ public class BookingTransactionServiceImpl implements BookingTransactionService 
     public Movie getMovieDetails(String movieId){
 
         Optional<Movie> optionalMovie = movieInfoRepository.findById(movieId);
-        movie = optionalMovie.get();
-        return movie;
+        if (optionalMovie.isEmpty()){
+            return null;
+        } else{
+            movie = optionalMovie.get();
+            return movie;
+        }
+
     }
 
     public boolean isTicketAvailable(String movieId, int bookedTicket){
